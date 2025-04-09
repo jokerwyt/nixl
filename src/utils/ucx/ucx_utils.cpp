@@ -18,6 +18,7 @@
 #include <string>
 #include <cstring>
 #include <cassert>
+#include <iostream>
 
 #include "ucx_utils.h"
 
@@ -90,16 +91,16 @@ nixlUcxContext::nixlUcxContext(std::vector<std::string> devs,
     ucp_config_read(NULL, NULL, &ucp_config);
 
     /* If requested, restrict the set of network devices */
-    if (devs.size()) {
-        /* TODO: check if this is the best way */
-        string dev_str = "";
-        unsigned int i;
-        for(i=0; i < devs.size() - 1; i++) {
-            dev_str = dev_str + devs[i] + ":1,";
-        }
-        dev_str = dev_str + devs[i] + ":1";
-        ucp_config_modify(ucp_config, "NET_DEVICES", dev_str.c_str());
-    }
+    // if (devs.size()) {
+    //     /* TODO: check if this is the best way */
+    //     string dev_str = "";
+    //     unsigned int i;
+    //     for(i=0; i < devs.size() - 1; i++) {
+    //         dev_str = dev_str + devs[i] + ":1,";
+    //     }
+    //     dev_str = dev_str + devs[i] + ":1";
+    //     ucp_config_modify(ucp_config, "NET_DEVICES", dev_str.c_str());
+    // }
 
     status = ucp_init(&ucp_params, ucp_config, &ctx);
     if (status != UCS_OK) {
@@ -462,6 +463,7 @@ nixl_status_t nixlUcxWorker::write(nixlUcxEp &ep,
     if (request == NULL ) {
         return NIXL_SUCCESS;
     } else if (UCS_PTR_IS_ERR(request)) {
+        std::cerr << "[wytdebug] milestone XXX " << ucs_status_string(UCS_PTR_STATUS(request)) << std::endl;
         /* TODO: MSW_NET_ERROR(priv->net, "unable to complete UCX request (%s)\n",
                          ucs_status_string(UCS_PTR_STATUS(request))); */
         return NIXL_ERR_BACKEND;

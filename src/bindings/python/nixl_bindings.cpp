@@ -411,10 +411,12 @@ PYBIND11_MODULE(_bindings, m) {
                     nixl_opt_args_t extra_params;
                     nixl_status_t ret;
                     if (notif_msg.size()>0) {
+                        std::cout << "[wytdebug] milestone binding postXferReq 1" << std::endl; 
                         extra_params.notifMsg = notif_msg;
                         extra_params.hasNotif = true;
                         ret = agent.postXferReq((nixlXferReqH*) reqh, &extra_params);
                     } else {
+                        std::cout << "[wytdebug] milestone binding postXferReq 2" << std::endl; 
                         ret = agent.postXferReq((nixlXferReqH*) reqh);
                     }
                     throw_nixl_exception(ret);

@@ -85,7 +85,7 @@ ucs_status_t rndv_test (void *arg, const void *header,
 int main()
 {
     vector<string> devs;
-    devs.push_back("mlx5_0");
+    devs.push_back("bond2");
 
     nixlUcxContext c[2] = {
         nixlUcxContext(devs, 0, NULL, NULL, NIXL_UCX_MT_SINGLE),
