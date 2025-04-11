@@ -687,7 +687,7 @@ nixl_status_t nixlUcxEngine::retHelper(nixl_status_t ret, nixlUcxBckndReq *head,
             if (head->next()) {
                 releaseReqH(head->next());
             }
-            std::cerr << "[wytdebug] milestone retHelper return NIXL_ERR_BACKEND\n";
+            // std::cerr << "[wytdebug] milestone retHelper return NIXL_ERR_BACKEND\n";
             return NIXL_ERR_BACKEND;
     }
     return NIXL_SUCCESS;
@@ -711,7 +711,7 @@ nixl_status_t nixlUcxEngine::postXfer (const nixl_xfer_op_t &operation,
                                        nixlBackendReqH* &handle,
                                        const nixl_opt_b_args_t* opt_args)
 {
-    std::cerr << "[wytdebug] ucxbackend.cpp: postXfer() called\n";
+    // std::cerr << "[wytdebug] ucxbackend.cpp: postXfer() called\n";
     size_t lcnt = local.descCount();
     size_t rcnt = remote.descCount();
     size_t i;
@@ -753,7 +753,7 @@ nixl_status_t nixlUcxEngine::postXfer (const nixl_xfer_op_t &operation,
         }
 
         if (retHelper(ret, head, req)) {
-            std::cerr << "[wytdebug] milestone A\n";
+            // std::cerr << "[wytdebug] milestone A\n";
             return ret;
         }
     }
@@ -761,19 +761,19 @@ nixl_status_t nixlUcxEngine::postXfer (const nixl_xfer_op_t &operation,
     rmd = (nixlUcxPublicMetadata*) remote[0].metadataP;
     ret = uw->flushEp(rmd->conn.ep, req);
     if (retHelper(ret, head, req)) {
-        std::cerr << "[wytdebug] milestone B\n";
+        // std::cerr << "[wytdebug] milestone B\n";
         return ret;
     }
 
     if(opt_args && opt_args->hasNotif) {
         ret = notifSendPriv(remote_agent, opt_args->notifMsg, req);
         if (retHelper(ret, head, req)) {
-            std::cerr << "[wytdebug] milestone C\n";
+            // std::cerr << "[wytdebug] milestone C\n";
             return ret;
         }
     }
 
-    std::cerr << "[wytdebug] milestone D\n";
+    // std::cerr << "[wytdebug] milestone D\n";
     handle = head->next();
     return (NULL ==  head->next()) ? NIXL_SUCCESS : NIXL_IN_PROG;
 }

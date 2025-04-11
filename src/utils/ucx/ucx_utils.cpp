@@ -463,7 +463,7 @@ nixl_status_t nixlUcxWorker::write(nixlUcxEp &ep,
     if (request == NULL ) {
         return NIXL_SUCCESS;
     } else if (UCS_PTR_IS_ERR(request)) {
-        std::cerr << "[wytdebug] milestone XXX " << ucs_status_string(UCS_PTR_STATUS(request)) << std::endl;
+        // std::cerr << "[wytdebug] milestone XXX " << ucs_status_string(UCS_PTR_STATUS(request)) << std::endl;
         /* TODO: MSW_NET_ERROR(priv->net, "unable to complete UCX request (%s)\n",
                          ucs_status_string(UCS_PTR_STATUS(request))); */
         return NIXL_ERR_BACKEND;

@@ -2,10 +2,12 @@
 
 set -ex
 
+MY_PATH=`dirname $0`
+
 tmp_path=/tmp/nixl
 
 rm -rf $tmp_path
-cp -r . $tmp_path
+cp -r $MY_PATH $tmp_path
 
 pushd $tmp_path
 

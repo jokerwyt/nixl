@@ -585,6 +585,7 @@ nixlAgent::createXferReq(const nixl_xfer_op_t &operation,
                          const std::string &remote_agent,
                          nixlXferReqH* &req_hndl,
                          const nixl_opt_args_t* extra_params) const {
+    std::cerr << "[wytdebug] NIXL createXferReq called\n";
     nixl_status_t     ret1, ret2;
     nixl_opt_b_args_t opt_args;
     backend_set_t*    backend_set = new backend_set_t();
@@ -592,16 +593,20 @@ nixlAgent::createXferReq(const nixl_xfer_op_t &operation,
     req_hndl = nullptr;
 
     if (data->remoteSections.count(remote_agent) == 0) {
-        std::cerr << "[wytdebug] createXferReq ERR_NOT_FOUND 1\n";
+        // std::cerr << "[wytdebug] createXferReq ERR_NOT_FOUND 1\n";
         return NIXL_ERR_NOT_FOUND;
     }
 
     // Check the correspondence between descriptor lists
-    if (local_descs.descCount() != remote_descs.descCount())
+    if (local_descs.descCount() != remote_descs.descCount()) {
+        std::cerr << "[wytdebug] createXferReq ERR_INVALID_PARAM desc item len mismatch: " << local_descs.descCount() << " " << remote_descs.descCount() << "\n";
         return NIXL_ERR_INVALID_PARAM;
+    }
     for (int i=0; i<local_descs.descCount(); ++i)
-        if (local_descs[i].len != remote_descs[i].len)
+        if (local_descs[i].len != remote_descs[i].len) {
+            std::cerr << "[wytdebug] createXferReq ERR_INVALID_PARAM desc item len mismatch: " << local_descs[i].len << " " << remote_descs[i].len << "\n";
             return NIXL_ERR_INVALID_PARAM;
+        }
 
     if (!extra_params || extra_params->backends.size() == 0) {
         // Finding backends that support the corresponding memories
@@ -612,7 +617,7 @@ nixlAgent::createXferReq(const nixl_xfer_op_t &operation,
             data->remoteSections[remote_agent]->queryBackends(
                                                 remote_descs.getType());
         if (!local_set || !remote_set) {
-            std::cerr << "[wytdebug] createXferReq ERR_NOT_FOUND 2\n";
+            // std::cerr << "[wytdebug] createXferReq ERR_NOT_FOUND 2\n";
             delete backend_set;
             return NIXL_ERR_NOT_FOUND;
         }
@@ -622,7 +627,7 @@ nixlAgent::createXferReq(const nixl_xfer_op_t &operation,
                 backend_set->insert(elm);
 
         if (backend_set->empty()) {
-            std::cerr << "[wytdebug] createXferReq ERR_NOT_FOUND 3\n";
+            // std::cerr << "[wytdebug] createXferReq ERR_NOT_FOUND 3\n";
             delete backend_set;
             return NIXL_ERR_NOT_FOUND;
         }
@@ -647,7 +652,7 @@ nixlAgent::createXferReq(const nixl_xfer_op_t &operation,
     // Currently we loop through and find first local match. Can use a
     // preference list or more exhaustive search.
     for (auto & backend : *backend_set) {
-        std::cerr << "[wytdebug] backend type " << backend->getType() << std::endl;
+        // std::cerr << "[wytdebug] backend type " << backend->getType() << std::endl;
         // If populate fails, it clears the resp before return
         ret1 = data->memorySection->populate(
                      local_descs, backend, *handle->initiatorDescs);
@@ -660,14 +665,14 @@ nixlAgent::createXferReq(const nixl_xfer_op_t &operation,
             handle->engine = backend;
             break;
         } else {
-            std::cerr << "[wytdebug] populate failed, ret1: " << ret1 << " ret2: " << ret2 << std::endl;
+            // std::cerr << "[wytdebug] populate failed, ret1: " << ret1 << " ret2: " << ret2 << std::endl;
         }
     }
 
     delete backend_set;
 
     if (!handle->engine) {
-        std::cerr << "[wytdebug] createXferReq ERR_NOT_FOUND 4\n";
+        // std::cerr << "[wytdebug] createXferReq ERR_NOT_FOUND 4\n";
         delete handle;
         return NIXL_ERR_NOT_FOUND;
     }
@@ -695,6 +700,7 @@ nixlAgent::createXferReq(const nixl_xfer_op_t &operation,
                                      handle->backendHandle,
                                      &opt_args);
     if (ret1 != NIXL_SUCCESS) {
+        std::cerr << "[wytdebug] createXferReq call prepXfer fail ret1: " << ret1 << std::endl;
         delete handle;
         return ret1;
     }
@@ -759,7 +765,7 @@ nixlAgent::postXferReq(nixlXferReqH *req_hndl,
         delete req_hndl;
         return NIXL_ERR_BACKEND;
     }
-    std::cerr << "[wytdebug] milestone 1" << std::endl;
+    // std::cerr << "[wytdebug] milestone 1" << std::endl;
     // If status is not NIXL_IN_PROG we can repost,
     ret = req_hndl->engine->postXfer (req_hndl->backendOp,
                                      *req_hndl->initiatorDescs,
@@ -767,7 +773,7 @@ nixlAgent::postXferReq(nixlXferReqH *req_hndl,
                                       req_hndl->remoteAgent,
                                       req_hndl->backendHandle,
                                       &opt_args);
-    std::cerr << "[wytdebug] milestone 2" << std::endl;
+    // std::cerr << "[wytdebug] milestone 2" << std::endl;
     req_hndl->status = ret;
     return ret;
 }
