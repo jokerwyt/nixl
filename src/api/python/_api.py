@@ -527,6 +527,8 @@ class nixl_agent:
     def check_remote_xfer_done(
         self, remote_agent_name: str, lookup_msg: bytes, backends: list[str] = []
     ) -> bool:
+        assert type(lookup_msg) == bytes
+
         handle_list = []
         for backend_string in backends:
             handle_list.append(self.backends[backend_string])
@@ -535,8 +537,9 @@ class nixl_agent:
         message = None
 
         if remote_agent_name in self.notifs:
+            # print(f'[debug] lookup_msg {lookup_msg}, notifs {self.notifs[remote_agent_name]}')
             for msg in self.notifs[remote_agent_name]:
-                if str(lookup_msg) in str(msg):
+                if lookup_msg in msg:
                     message = msg
                     found = True
                     break
