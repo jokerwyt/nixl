@@ -29,4 +29,4 @@ authors = [
 ]
 
 [tool.meson-python.args]
-setup = ['-Dinstall_headers=false']
+setup = ['-Dinstall_headers=false', '-Ducx_path=/usr/local/ucx/']
