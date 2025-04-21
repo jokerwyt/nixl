@@ -11,15 +11,8 @@ cp -r $MY_PATH $tmp_path
 
 pushd $tmp_path
 
-# rm -rf build
-# mkdir build
-# meson setup build -Ducx_path=/usr/local/ucx/
-# cd build
-# ninja
-# ninja install
-# cd ..
-
 pip3.10 install meson --trusted-host mirrors.cloud.tencent.com
+pip3.10 uninstall -y nixl || true
 pip3.10 install . --trusted-host mirrors.cloud.tencent.com 
 
 popd
