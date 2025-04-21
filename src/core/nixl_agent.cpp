@@ -627,12 +627,12 @@ nixlAgent::createXferReq(const nixl_xfer_op_t &operation,
 
     // Check the correspondence between descriptor lists
     if (local_descs.descCount() != remote_descs.descCount()) {
-        std::cerr << "[wytdebug] createXferReq ERR_INVALID_PARAM desc item len mismatch: " << local_descs.descCount() << " " << remote_descs.descCount() << "\n";
+        // std::cerr << "[wytdebug] createXferReq ERR_INVALID_PARAM desc item len mismatch: " << local_descs.descCount() << " " << remote_descs.descCount() << "\n";
         return NIXL_ERR_INVALID_PARAM;
     }
     for (int i=0; i<local_descs.descCount(); ++i)
         if (local_descs[i].len != remote_descs[i].len) {
-            std::cerr << "[wytdebug] createXferReq ERR_INVALID_PARAM desc item len mismatch: " << local_descs[i].len << " " << remote_descs[i].len << "\n";
+            // std::cerr << "[wytdebug] createXferReq ERR_INVALID_PARAM desc item len mismatch: " << local_descs[i].len << " " << remote_descs[i].len << "\n";
             return NIXL_ERR_INVALID_PARAM;
         }
 
@@ -728,7 +728,7 @@ nixlAgent::createXferReq(const nixl_xfer_op_t &operation,
                                      handle->backendHandle,
                                      &opt_args);
     if (ret1 != NIXL_SUCCESS) {
-        std::cerr << "[wytdebug] createXferReq call prepXfer fail ret1: " << ret1 << std::endl;
+        // std::cerr << "[wytdebug] createXferReq call prepXfer fail ret1: " << ret1 << std::endl;
         delete handle;
         return ret1;
     }
@@ -789,7 +789,7 @@ nixlAgent::postXferReq(nixlXferReqH *req_hndl,
     }
 
     if (opt_args.hasNotif && (!req_hndl->engine->supportsNotif())) {
-        std::cerr << "[wytdebug nixl]" << opt_args.hasNotif << " " << (!req_hndl->engine->supportsNotif()) << std::endl;
+        // std::cerr << "[wytdebug nixl]" << opt_args.hasNotif << " " << (!req_hndl->engine->supportsNotif()) << std::endl;
         delete req_hndl;
         return NIXL_ERR_BACKEND;
     }
