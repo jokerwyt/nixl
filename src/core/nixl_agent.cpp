@@ -613,7 +613,7 @@ nixlAgent::createXferReq(const nixl_xfer_op_t &operation,
                          const std::string &remote_agent,
                          nixlXferReqH* &req_hndl,
                          const nixl_opt_args_t* extra_params) const {
-    std::cerr << "[wytdebug] NIXL createXferReq called\n";
+    // std::cerr << "[wytdebug] NIXL createXferReq called\n";
     nixl_status_t     ret1, ret2;
     nixl_opt_b_args_t opt_args;
     backend_set_t*    backend_set = new backend_set_t();
