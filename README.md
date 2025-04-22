@@ -72,12 +72,53 @@ $ ninja
 $ ninja install
 ```
 
+### Build Options
+
+NIXL supports several build options that can be specified during the meson setup phase:
+
+```bash
+# Basic build setup with default options
+$ meson setup <name_of_build_dir>
+
+# Setup with custom options (example)
+$ meson setup <name_of_build_dir> \
+    -Dbuild_docs=true \           # Build Doxygen documentation
+    -Ducx_path=/path/to/ucx \     # Custom UCX installation path
+    -Dinstall_headers=true \      # Install development headers
+    -Ddisable_gds_backend=false   # Enable GDS backend
+```
+
+Common build options:
+- `build_docs`: Build Doxygen documentation (default: false)
+- `ucx_path`: Path to UCX installation (default: system path)
+- `install_headers`: Install development headers (default: true)
+- `disable_gds_backend`: Disable GDS backend (default: false)
+- `cudapath_inc`, `cudapath_lib`: Custom CUDA paths
+- `static_plugins`: Comma-separated list of plugins to build statically
+
+### Building Documentation
+
+If you have Doxygen installed, you can build the documentation:
+
+```bash
+# Configure with documentation enabled
+$ meson setup <name_of_build_dir> -Dbuild_docs=true
+$ cd <name_of_build_dir>
+$ ninja
+
+# Documentation will be generated in <name_of_build_dir>/html
+# After installation (ninja install), documentation will be available in <prefix>/share/doc/nixl/
+```
+
 ### pybind11 Python Interface
 The pybind11 bindings for the public facing NIXL API are available in src/bindings/python. These bindings implement the headers in the src/api/cpp directory.
 
 The preferred way is to build it through meson-python, which will just let it be installed with pip. This can be done from the root nixl directory:
 
 ` $ pip install .`
+
+### Other build options
+See [contrib/README.md](contrib/README.md) for more build options.
 
 ### Building Docker container
 To build the docker container, first clone the current repository. Also make sure you are able to pull docker images to your machine before attempting to build the container.
@@ -89,7 +130,7 @@ $ ./contrib/build-container.sh
 
 By default, the container is built with Ubuntu 24.04. To build a container for Ubuntu 22.04 use the --os option as follows:
 ```
-$ ./contrib/build-container.sh --os 22.04
+$ ./contrib/build-container.sh --os ubuntu22
 ```
 
 To see all the options supported by the container use:
