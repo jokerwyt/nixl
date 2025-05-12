@@ -22,6 +22,9 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <memory>
+#include <condition_variable>
+#include <atomic>
 
 #include "nixl.h"
 #include "backend/backend_engine.h"
@@ -32,7 +35,7 @@
 #include "ucx/ucx_utils.h"
 #include "common/list_elem.h"
 
-typedef enum {CONN_CHECK, NOTIF_STR, DISCONNECT} ucx_cb_op_t;
+enum ucx_cb_op_t {CONN_CHECK, NOTIF_STR, DISCONNECT};
 
 struct nixl_ucx_am_hdr {
     ucx_cb_op_t op;
@@ -41,14 +44,17 @@ struct nixl_ucx_am_hdr {
 class nixlUcxConnection : public nixlBackendConnMD {
     private:
         std::string remoteAgent;
-        nixlUcxEp ep;
-        volatile bool connected;
+        std::vector<std::unique_ptr<nixlUcxEp>> eps;
 
     public:
-        // Extra information required for UCX connections
+        const std::unique_ptr<nixlUcxEp> &getEp(size_t ep_id) const {
+            return eps[ep_id];
+        }
 
     friend class nixlUcxEngine;
 };
+
+using ucx_connection_ptr_t = std::shared_ptr<nixlUcxConnection>;
 
 // A private metadata has to implement get, and has all the metadata
 class nixlUcxPrivateMetadata : public nixlBackendMD {
@@ -72,15 +78,21 @@ class nixlUcxPrivateMetadata : public nixlBackendMD {
 
 // A public metadata has to implement put, and only has the remote metadata
 class nixlUcxPublicMetadata : public nixlBackendMD {
-
+    private:
+        std::vector<nixlUcxRkey> rkeys;
     public:
-        nixlUcxRkey rkey;
-        nixlUcxConnection conn;
+        ucx_connection_ptr_t conn;
 
         nixlUcxPublicMetadata() : nixlBackendMD(false) {}
 
         ~nixlUcxPublicMetadata(){
         }
+
+        nixlUcxRkey &getRkey(size_t id) {
+            return rkeys[id];
+        }
+
+    friend class nixlUcxEngine;
 };
 
 // Forward declaration of CUDA context
@@ -92,21 +104,23 @@ class nixlUcxPublicMetadata : public nixlBackendMD {
 class nixlUcxCudaCtx;
 class nixlUcxEngine : public nixlBackendEngine {
     private:
-
         /* UCX data */
-        nixlUcxContext* uc;
-        nixlUcxWorker* uw;
-        void* workerAddr;
+        std::shared_ptr<nixlUcxContext> uc;
+        std::vector<std::unique_ptr<nixlUcxWorker>> uws;
+        std::unique_ptr<char []> workerAddr;
         size_t workerSize;
 
         /* Progress thread data */
-        volatile bool pthrStop, pthrActive, pthrOn;
-        int noSyncIters;
+        std::mutex pthrActiveLock;
+        std::condition_variable pthrActiveCV;
+        bool pthrActive;
+        std::atomic_bool pthrStop;
+        bool pthrOn;
         std::thread pthr;
         nixlTime::us_t pthrDelay;
 
         /* CUDA data*/
-        nixlUcxCudaCtx *cudaCtx;
+        std::unique_ptr<nixlUcxCudaCtx> cudaCtx;
         bool cuda_addr_wa;
 
         /* Notifications */
@@ -115,7 +129,7 @@ class nixlUcxEngine : public nixlBackendEngine {
         notif_list_t notifPthrPriv, notifPthr;
 
         // Map of agent name to saved nixlUcxConnection info
-        std::unordered_map<std::string, nixlUcxConnection,
+        std::unordered_map<std::string, ucx_connection_ptr_t,
                            std::hash<std::string>, strEqual> remoteConnMap;
 
 
@@ -158,7 +172,9 @@ class nixlUcxEngine : public nixlBackendEngine {
                                       size_t length,
                                       const ucp_am_recv_param_t *param);
         nixl_status_t notifSendPriv(const std::string &remote_agent,
-                                    const std::string &msg, nixlUcxReq &req);
+                                    const std::string &msg,
+                                    nixlUcxReq &req,
+                                    size_t worker_id);
         void notifProgress();
         void notifCombineHelper(notif_list_t &src, notif_list_t &tgt);
         void notifProgressCombineHelper(notif_list_t &src, notif_list_t &tgt);
@@ -224,6 +240,13 @@ class nixlUcxEngine : public nixlBackendEngine {
         //public function for UCX worker to mark connections as connected
         nixl_status_t checkConn(const std::string &remote_agent);
         nixl_status_t endConn(const std::string &remote_agent);
+
+        const std::unique_ptr<nixlUcxWorker> &getWorker(size_t worker_id) const {
+            return uws[worker_id];
+        }
+        size_t getWorkerId() const {
+            return std::hash<std::thread::id>{}(std::this_thread::get_id()) % uws.size();
+        }
 };
 
 #endif
